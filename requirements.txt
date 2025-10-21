@@ -1,0 +1,30 @@
+gradio
+pandas
+PyMuPDF
+Pillow
+pytesseract
+python-dotenv
+langchain-google-genai
+langchain-openai
+langchain-anthropic
+langchain-mistralai
+langchain-groq
+pydantic
+openpyxl
+langchain-core
+langchain-community
+pydot
+rarfile
+opencv-python-headless
+# --- NOVAS DEPENDÊNCIAS PARA O FLUXO MODULAR ---
+
+# LangGraph: A biblioteca principal para criar grafos de estado e orquestrar os agentes.
+langgraph
+
+# LangSmith: Ferramenta para visualização, monitoramento e depuração dos nossos agentes.
+# A 'langchain-cli' é usada para configurar a integração.
+langchain-cli
+
+# --- DEPENDÊNCIAS OPCIONAIS PARA VISUALIZAÇÃO DO GRAFO ---
+# Necessárias para gerar um diagrama visual do nosso fluxo de agentes.
+graphviz
