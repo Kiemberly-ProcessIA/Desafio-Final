@@ -1,43 +1,46 @@
-# SYNFST - Sistema de Processamento de Documentos Fiscais
+# SYNFST - Sistema de Processamento de Documentos Fiscais de Serviços Tomados
 
 ![Licença MIT](https://img.shields.io/badge/license-MIT-green)
 
 **Grupo:** ProcessIA  
-**Participantes:** Davi | Eduardo | Eliezer | Jacson | Kimberly | Roberto
+**Participantes:** Davi | Eduardo | Eliezer | Kimberly | Roberto
 
 ## Descrição
 
-Desenvolvido para automatizar a extração e o processamento de dados de documentos fiscais, aceitando tanto arquivos PDF quanto imagens. O foco principal é recuperar documentos fiscais de fontes conhecidas e aplicar técnicas avançadas de reconhecimento óptico de caracteres (OCR) e processamento de linguagem natural (NLP) para identificar e extrair informações relevantes.
+Desenvolvido para automatizar a leitura, extração e processamento de dados de documentos fiscais de serviços tomados, o agente de IA foi projetado para reduzir o trabalho manual dos analistas contábeis e garantir maior precisão e agilidade na escrituração fiscal.
+A solução é capaz de processar arquivos em PDF e imagens, identificando e extraindo automaticamente as informações essenciais das notas fiscais de serviços emitidas contra a empresa tomadora.
+Seu foco principal é organizar os dados fiscais em um formato padronizado, pronto para ser lançado tanto no sistema interno da contabilidade quanto nos portais municipais e na Receita Federal.
 
 ---
 
 ## Principais Funcionalidades
 
-- **Recuperação de documentos fiscais:** Busca e importação de arquivos PDF ou imagens contendo notas fiscais de diferentes fontes.
-- **Extração inteligente de dados:** Utiliza OCR para converter imagens em texto e NLP para interpretar e estruturar as informações extraídas dos documentos.
+- **Recuperação de documentos fiscais:** Permite importar e processar notas fiscais de serviços tomados a partir de diferentes fontes, em formatos PDF ou imagem, garantindo abrangência e flexibilidade no tratamento dos dados.
+- **Extração inteligente de dados:** Emprega técnicas de Reconhecimento Óptico de Caracteres (OCR) para converter documentos digitalizados em texto, e Processamento de Linguagem Natural (NLP) para interpretar, classificar e estruturar as informações extraídas de forma contextual e semântica.
 - **Identificação de informações fiscais:**
   - Dados do emitente e destinatário
-  - Itens da nota (descrição, quantidade, valor)
-  - Impostos (ICMS, IPI, PIS, COFINS, entre outros)
-  - Códigos fiscais (CFOP, CST e outros)
-- **Geração de relatórios e planilhas:** Exportação dos dados extraídos para formatos compatíveis com sistemas de gestão e escrituração fiscal.
-- **Interface intuitiva:** Experiência simples para configuração, upload de documentos e visualização dos resultados.
+  - Detalhamento dos serviços tomados (descrição, valores, retenções de tributos)
+  - Informações sobre impostos incidentes (ISS, INSS, PIS, COFINS, IRRF etc.)
+  - Códigos fiscais e de operação (CFOP, CNAE, CST e outros)
+- **Geração de relatórios e planilhas:** Os dados extraídos são organizados e exportados em planilhas e relatórios compatíveis com sistemas de gestão contábil e escrituração fiscal, prontos para envio às prefeituras e órgãos federais.
+- **Interface intuitiva:** O sistema oferece uma interface simples e funcional, permitindo o upload de documentos, visualização dos resultados processados e configuração personalizada de relatórios, facilitando a operação por equipes contábeis.
 
 ---
 
 ## Público Alvo
 
-Empresas, escritórios de contabilidade, profissionais de automação fiscal e equipes de tecnologia que precisam processar grandes volumes de documentos fiscais (notas fiscais eletrônicas) de forma automatizada, rápida e confiável. Também atende desenvolvedores e analistas que buscam integrar extração inteligente de dados fiscais em seus sistemas, facilitando a escrituração, auditoria e análise tributária.
+Empresas, escritórios de contabilidade e profissionais da área fiscal que necessitam processar grandes volumes de documentos fiscais de forma automatizada, ágil e precisa.
+Também atende equipes de tecnologia e automação contábil que buscam incorporar soluções inteligentes de leitura e extração de dados em seus fluxos de trabalho, reduzindo erros manuais e otimizando o tempo gasto em tarefas repetitivas.
+Além disso, a solução é ideal para desenvolvedores, analistas e integradores de sistemas que desejam implementar rotinas de extração e padronização de dados fiscais em plataformas próprias, facilitando processos de escrituração, auditoria e análise tributária em conformidade com as exigências dos órgãos municipais, estaduais e federais.
 
 ---
 
 ## Justificativa
 
-A crescente demanda por agilidade e precisão no processamento de documentos fiscais tornou-se indispensável em soluções automatizadas. Empresas, escritórios de contabilidade e profissionais da área fiscal enfrentam diariamente o desafio de lidar com grandes volumes de notas fiscais em diferentes formatações. O trabalho manual de extração, conferência e digitação de dados é repetitivo, sujeito a erros e consome tempo valioso que poderia ser dedicado a atividades estratégicas.
-
-O SYNFST foi desenvolvido para transformar esse cenário, proporcionando uma automação eficiente e inteligente do processamento de documentos fiscais. Ao permitir a importação de arquivos, o sistema elimina tarefas manuais, reduz erros humanos e acelera significativamente o fluxo de trabalho. A extração automática de informações relevantes garante maior confiabilidade e facilita a integração com sistemas de gestão.
-
-Além de aumentar a produtividade, o sistema contribui para a redução de custos operacionais, melhora o controle tributário e libera profissionais para focarem em análises e tomadas de decisão.
+A crescente demanda por agilidade, precisão e conformidade no processamento de documentos fiscais têm impulsionado a necessidade de soluções inteligentes e automatizadas. No contexto contábil e tributário, empresas e escritórios de contabilidade enfrentam diariamente o desafio de lidar com grandes volumes de notas fiscais de serviços, emitidas em diferentes formatos e padrões.
+O processo manual de extração, conferência e lançamento de informações é repetitivo, sujeito a falhas humanas e consome tempo que poderia ser direcionado a atividades mais analíticas e estratégicas. Esse cenário reforça a importância da automação como ferramenta essencial para garantir eficiência operacional e segurança fiscal.
+Diante desse desafio, o SYNFST foi desenvolvido para transformar o modo como as informações fiscais são tratadas. A plataforma realiza a importação, leitura e extração automática dos dados de documentos fiscais, eliminando tarefas manuais e acelerando o fluxo de escrituração. Sua estrutura baseada em inteligência artificial, OCR e NLP assegura a identificação precisa de campos fiscais e a integração eficiente com sistemas de gestão e órgãos governamentais.
+Além de otimizar o tempo e reduzir custos operacionais, o SYNFST contribui para elevar o nível de confiabilidade e transparência das informações contábeis, permitindo que os profissionais concentrem seus esforços em análise de resultados, auditorias e planejamento tributário estratégico. Assim, o projeto representa um avanço significativo na modernização dos processos contábeis e na adoção de tecnologias que fortalecem a governança e a produtividade empresarial.
 
 ---
 
@@ -58,35 +61,29 @@ Além de aumentar a produtividade, o sistema contribui para a redução de custo
 
 ## 🖥️ Como a Solução é Operada
 
-### Inicialização no Windows
+### Inicialização
 
-- 💻 **Via Executável:** Navegue até a pasta `dist/SYNFST` e execute `SYNFST.exe`. O sistema abrirá automaticamente a interface web no navegador em `http://127.0.0.1:7860`.
-- 🐍 **Via Código Fonte:** Abra o terminal, navegue até a pasta do projeto e execute:
+- Navegue até a pasta SYNFST e execute SYNFST.exe. O sistema abrirá automaticamente a interface web no navegador em <http://127.0.0.1:7860>.
 
-  ```powershell
-  python run.py
-  ```
+### Upload de Documentos
 
-  Acesse a interface web pelo navegador em `http://127.0.0.1:7860`.
+- Pela interface web, selecione e envie arquivos PDF ou imagens para processamento.
 
-### Inicialização no Linux
+### Configuração
 
-- Certifique-se de ter o Python instalado e todas as dependências configuradas.
-- Abra o terminal, navegue até a pasta do projeto e execute:
+- Configure as chaves de API dos provedores de IA e ajuste parâmetros conforme necessário.
 
-  ```bash
-  python3 run.py
-  ```
+### Processamento
 
-  Acesse a interface web pelo navegador em `http://127.0.0.1:7860`.
+- O sistema realiza a extração e validação dos dados automaticamente, exibindo o progresso e os resultados na interface.
 
-### Fluxo Operacional
+### Exportação
 
-1. 📤 **Upload de Documentos:** Pela interface web, selecione e envie arquivos PDF ou imagens para processamento.
-2. ⚙️ **Configuração:** Configure as chaves de API dos provedores de IA e ajuste parâmetros conforme necessário.
-3. 🔄 **Processamento:** O sistema realiza a extração e validação dos dados automaticamente, exibindo o progresso e os resultados na interface.
-4. 📥 **Exportação:** Baixe relatórios ou planilhas com os dados extraídos, prontos para integração com outros sistemas.
-5. 📝 **Acompanhamento:** Monitore logs e mensagens de status exibidos no terminal para acompanhamento e resolução de eventuais problemas.
+- Baixe relatórios ou planilhas com os dados extraídos, prontos para integração com outros sistemas.
+
+### Acompanhamento
+
+- Monitore logs e mensagens de status exibidos no terminal para acompanhamento e resolução de eventuais problemas.
 
 ---
 
