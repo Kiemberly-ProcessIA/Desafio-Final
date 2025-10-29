@@ -61,9 +61,13 @@ Além de otimizar o tempo e reduzir custos operacionais, o SYNFST contribui para
 
 ## 🖥️ Como a Solução é Operada
 
+### Clone
+
+- Execute o comando 'git clone git@github.com:Kiemberly-ProcessIA/Desafio-Final.git'.
+
 ### Inicialização
 
-- Navegue até a pasta SYNFST e execute SYNFST.exe. O sistema abrirá automaticamente a interface web no navegador em <http://127.0.0.1:7860>.
+- Navegue até a pasta dist/SYNFST e execute SYNFST.exe. O sistema abrirá automaticamente a interface web no navegador em <http://127.0.0.1:7860>.
 
 ### Upload de Documentos
 
