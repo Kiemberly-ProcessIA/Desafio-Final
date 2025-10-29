@@ -123,6 +123,7 @@ if TYPE_CHECKING:
     from gradio.blocks import Block
 
 import difflib
+import re
 import shutil
 import tempfile
 
@@ -521,7 +522,7 @@ class App(FastAPI):
 
         @app.post("/login")
         @app.post("/login/")
-        def login(
+        async def login(
             request: fastapi.Request, form_data: OAuth2PasswordRequestForm = Depends()
         ):
             username, password = form_data.username.strip(), form_data.password
@@ -536,7 +537,14 @@ class App(FastAPI):
                 not callable(app.auth)
                 and username in app.auth  # type: ignore
                 and compare_passwords_securely(password, app.auth[username])  # type: ignore
-            ) or (callable(app.auth) and app.auth.__call__(username, password)):  # type: ignore
+            ) or (
+                callable(app.auth)
+                and (
+                    await app.auth(username, password)
+                    if inspect.iscoroutinefunction(app.auth)
+                    else app.auth(username, password)
+                )
+            ):  # type: ignore
                 token = secrets.token_urlsafe(16)
                 app.tokens[token] = username
                 response = JSONResponse(content={"success": True})
@@ -1791,7 +1799,7 @@ class App(FastAPI):
         @app.get("/manifest.json")
         def manifest_json():
             if not blocks.pwa:
-                raise HTTPException(status_code=404)
+                raise HTTPException(status_code=404, detail="PWA not enabled.")
 
             favicon_path = blocks.favicon_path
             if isinstance(favicon_path, Path):
@@ -1977,6 +1985,87 @@ class App(FastAPI):
 
         vibe_edit_history_dir = Path(DEFAULT_TEMP_DIR) / "vibe_edit_history"
         vibe_edit_history_dir.mkdir(exist_ok=True, parents=True)
+        chat_history = {"history": ""}
+        hash_to_chat_history = {}
+
+        def limit_chat_history(history: str, max_pairs: int = 5) -> str:
+            """Limit chat history in the prompt to the last max_pairs user-assistant pairs."""
+            if not history.strip():
+                return ""
+
+            user_messages = history.split("\nUser: ")
+            if len(user_messages) <= max_pairs:
+                return history
+
+            recent_messages = user_messages[-max_pairs:]
+
+            if len(recent_messages) > 0:
+                if recent_messages[0].startswith("User: "):
+                    result = recent_messages[0]
+                else:
+                    result = "User: " + recent_messages[0]
+
+                for msg in recent_messages[1:]:
+                    result += "\nUser: " + msg
+
+                return result
+
+            return ""
+
+        control_token_re = re.compile(r"<\|[^>]*\|>")
+        final_start_re = re.compile(
+            r"<\|start\|>assistant<\|channel\|>final<\|message\|>", re.IGNORECASE
+        )
+        end_re = re.compile(r"<\|end\|>", re.IGNORECASE)
+        reasoning_block_re = re.compile(
+            r"<\s*reasoning\s*>\s*(?P<body>.*?)\s*<\s*/\s*reasoning\s*>",
+            re.IGNORECASE | re.DOTALL,
+        )
+        think_block_re = re.compile(
+            r"<\s*think\s*>.*?<\s*/\s*think\s*>", re.IGNORECASE | re.DOTALL
+        )
+
+        # Remove analysis and weird markers from gpt-oss
+        def clean_out_markers(raw: str) -> str:
+            if not raw:
+                return raw
+
+            m = final_start_re.search(raw)
+            if m:
+                text = raw[m.end() :]
+                m_end = end_re.search(text)
+                if m_end:
+                    text = text[: m_end.start()]
+                return text.strip()
+
+            text = control_token_re.sub("", raw)
+            return text.strip()
+
+        def strip_think_blocks(text: str) -> str:
+            """Remove any <think> ... </think> blocks entirely"""
+            return think_block_re.sub("", text)
+
+        def split_reasoning_code(text: str) -> tuple[str, str]:
+            """
+            Extract all <reasoning>...</reasoning> and code. If multiple, concatenate with blank lines, de-duping exact copies.
+            """
+            reasoning_chunks = []
+            seen = set()
+            for m in reasoning_block_re.finditer(text):
+                body = m.group("body").strip()
+                if body and body not in seen:
+                    reasoning_chunks.append(body)
+                    seen.add(body)
+
+            reasoning_text = "\n\n".join(reasoning_chunks).strip()
+            code_text = reasoning_block_re.sub("", text).strip()
+
+            return reasoning_text, code_text
+
+        if blocks.vibe_mode:
+            from huggingface_hub import InferenceClient
+
+            inference_client = InferenceClient()
 
         @router.post("/vibe-edit/")
         @router.post("/vibe-edit")
@@ -1998,11 +2087,11 @@ class App(FastAPI):
             with open(snapshot_file, "w") as f:
                 f.write(original_code)
 
-            from huggingface_hub import InferenceClient
-
-            client = InferenceClient()
+            hash_to_chat_history[snapshot_hash] = chat_history["history"]
 
             content = ""
+            limited_history = limit_chat_history(chat_history["history"])
+
             prompt = f"""
 You are a code generator for Gradio apps. Given the following existing code and prompt, return the full new code.
 Existing code:
@@ -2011,16 +2100,21 @@ Existing code:
 ```
 
 Prompt:
-{body.prompt}"""
+{body.prompt}
+
+History:
+{limited_history if limited_history else "No chat history."}
+"""
+
             system_prompt = load_system_prompt()
             content = (
-                client.chat_completion(
+                inference_client.chat_completion(
                     model="openai/gpt-oss-120b",
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt},
                     ],
-                    max_tokens=1000,
+                    max_tokens=10000,
                 )
                 .choices[0]
                 .message.content
@@ -2029,12 +2123,12 @@ Prompt:
             if content is None:
                 raise HTTPException(status_code=500, detail="Error generating code")
 
-            reasoning = None
-            if "<reasoning>" in content:
-                reasoning = content.split("<reasoning>")[1].split("</reasoning>")[0]
-                content = content.replace(
-                    f"<reasoning>{reasoning}</reasoning>", ""
-                ).strip()
+            content = clean_out_markers(content)
+            content = strip_think_blocks(content)
+
+            chat_history["history"] += f"\nUser: {body.prompt}\nAssistant: {content}\n"
+
+            reasoning, content = split_reasoning_code(content)
 
             if "```python\n" in content:
                 start = content.index("```python\n") + len("```python\n")
@@ -2089,6 +2183,8 @@ Prompt:
             with open(GRADIO_WATCH_DEMO_PATH, "w") as f:
                 f.write(saved_content)
 
+            chat_history["history"] = hash_to_chat_history.get(hash, "")
+
             return {"success": True}
 
         @router.get("/vibe-code/")
@@ -2135,6 +2231,54 @@ Prompt:
                     status_code=500, detail=f"Error writing file: {str(e)}"
                 ) from e
 
+        @router.post("/vibe-starter-queries/")
+        @router.post("/vibe-starter-queries")
+        async def get_vibe_starter_queries():
+            if not blocks.vibe_mode:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Vibe editor is not enabled. Use --vibe flag to enable.",
+                )
+
+            from gradio.http_server import GRADIO_WATCH_DEMO_PATH
+
+            with open(GRADIO_WATCH_DEMO_PATH) as f:
+                code = f.read()
+
+            prompt = f"""
+You are a prompt generator for a gradio vibe editor. Given the following existing code, return a list of starter queries that can be used to generate a new code.
+Existing code:
+```python
+{code}
+```
+"""
+
+            system_prompt = load_system_prompt(starter_queries=True)
+            content = (
+                inference_client.chat_completion(
+                    model="openai/gpt-oss-120b",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    max_tokens=10000,
+                )
+                .choices[0]
+                .message.content
+            )
+
+            if content is None:
+                raise HTTPException(status_code=500, detail="Error generating code")
+
+            content = strip_think_blocks(content)
+            content = clean_out_markers(content)
+
+            starter_queries = content.split("\n")
+
+            return {
+                "starter_queries": starter_queries,
+            }
+
         def cleanup_files(files):
             for file in files:
                 try:
@@ -2152,7 +2296,7 @@ Prompt:
 ########
 
 
-def load_system_prompt():
+def load_system_prompt(starter_queries: bool = False):
     prompt_rules = """Generate code for using the Gradio python library.
 
 The following RULES must be followed.  Whenever you are forming a response, ensure all rules have been followed otherwise start over.
@@ -2166,7 +2310,7 @@ Respond with a full Gradio app.
 Respond with a full Gradio app using correct syntax and features of the latest Gradio version. DO NOT write code that doesn't follow the signatures listed.
 Do not add comments explaining the code, unless they are very necessary to understand the code.
 Make sure the code includes all necessary imports.
-Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag.
+Clearly explain the changes, summary, or reasoning for the code you respond with, inside one large <reasoning> tag. Make sure it's easy to parse. Use markdown formatting when it makes sense, including bullet points if there are multiple changes.
 
 
 Here's an example of a valid response:
@@ -2184,6 +2328,43 @@ demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
 
 demo.launch()
 """
+    if starter_queries:
+        prompt_rules = """
+        You are a prompt generator for a gradio vibe editor.
+
+        Given python code of a gradio app, return a list of starter queries that can be used to generate new code.
+        Make sure the queries are short, useful and actually possible with Gradio.
+        The queries should be really simple and easy to understand.
+        You should respond with at most three queries, each on a new line. Do not include any other text.
+        Make sure the features you suggest are actually supported by Gradio, and documented in the docs section below.
+        Never suggest a query with more than one gradio feature or concept.
+        You may suggest queries that are not related to Gradio, but they must be related to the existing code and app. Never suggest queries that require external packages or libraries other than gradio.
+        Don't suggest adding a clear button if the app is an Interface, because Interface already has a clear button.
+
+        Here's an example of a gradio app:
+
+        ```python
+        import gradio as gr
+
+        def greet(name):
+            return "Hello " + name + "!"
+
+        demo = gr.Interface(fn=greet, inputs="textbox", outputs="textbox")
+
+        demo.launch()
+        ```
+
+        Here's an example of a valid response:
+        Add a title to the app
+        Add examples
+        Rewrite this app using Blocks
+
+        Here's an example of another valid response:
+        Add another textbox for name
+        Change the theme
+        Greet the user in many languages
+
+        """
     try:
         with httpx.Client() as client:
             response = client.get("https://www.gradio.app/llms.txt")

@@ -18,50 +18,16 @@
 # cython: language_level = 3
 
 from cpython cimport PyObject
+from cpython.slice cimport PySlice_Check
+
 from libcpp cimport nullptr, bool as c_bool
 from libcpp.cast cimport dynamic_cast
-from libcpp.memory cimport dynamic_pointer_cast
+from libcpp.memory cimport static_pointer_cast, dynamic_pointer_cast
+from libcpp.utility cimport move
+
 from pyarrow.includes.common cimport *
 from pyarrow.includes.libarrow cimport *
 from pyarrow.includes.libarrow_python cimport *
-
-# Will be available in Cython 3, not backported
-# ref: https://github.com/cython/cython/issues/3293#issuecomment-1223058101
-cdef extern from "<optional>" namespace "std" nogil:
-    cdef cppclass nullopt_t:
-        nullopt_t()
-
-    cdef nullopt_t nullopt
-
-    cdef cppclass optional[T]:
-        ctypedef T value_type
-        optional()
-        optional(nullopt_t)
-        optional(optional&) except +
-        optional(T&) except +
-        c_bool has_value()
-        T& value()
-        T& value_or[U](U& default_value)
-        void swap(optional&)
-        void reset()
-        T& emplace(...)
-        T& operator*()
-        # T* operator->() # Not Supported
-        optional& operator=(optional&)
-        optional& operator=[U](U&)
-        c_bool operator bool()
-        c_bool operator!()
-        c_bool operator==[U](optional&, U&)
-        c_bool operator!=[U](optional&, U&)
-        c_bool operator<[U](optional&, U&)
-        c_bool operator>[U](optional&, U&)
-        c_bool operator<=[U](optional&, U&)
-        c_bool operator>=[U](optional&, U&)
-
-    optional[T] make_optional[T](...) except +
-
-cdef extern from "Python.h":
-    int PySlice_Check(object)
 
 
 cdef int check_status(const CStatus& status) except -1 nogil
@@ -241,10 +207,6 @@ cdef class JsonType(BaseExtensionType):
         const CJsonType* json_ext_type
 
 
-cdef class PyExtensionType(ExtensionType):
-    pass
-
-
 cdef class _Metadata(_Weakrefable):
     # required because KeyValueMetadata also extends collections.abc.Mapping
     # and the first parent class must be an extension type
@@ -293,6 +255,14 @@ cdef class Scalar(_Weakrefable):
     cdef wrap(const shared_ptr[CScalar]& wrapped)
 
     cdef inline shared_ptr[CScalar] unwrap(self) nogil
+
+
+cdef class ArrayStatistics(_Weakrefable):
+    cdef:
+        shared_ptr[CArrayStatistics] sp_statistics
+
+    cdef void init(self, const shared_ptr[CArrayStatistics]& sp_statistics) except *
+    cdef _get_value(self, const optional[CArrayStatisticsValueType]& optional_value)
 
 
 cdef class _PandasConvertible(_Weakrefable):
@@ -695,6 +665,8 @@ cdef shared_ptr[function[StreamWrapFunc]] make_streamwrap_func(
 
 # Default is allow_none=False
 cpdef DataType ensure_type(object type, bint allow_none=*)
+
+cdef DataType primitive_type(Type type)
 
 cdef timeunit_to_string(TimeUnit unit)
 cdef TimeUnit string_to_timeunit(unit) except *

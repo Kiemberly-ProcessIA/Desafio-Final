@@ -18,14 +18,14 @@
 #ifndef PARQUET_VERSION_H
 #define PARQUET_VERSION_H
 
-#define PARQUET_VERSION_MAJOR 19
+#define PARQUET_VERSION_MAJOR 21
 #define PARQUET_VERSION_MINOR 0
-#define PARQUET_VERSION_PATCH 1
+#define PARQUET_VERSION_PATCH 0
 
-#define PARQUET_SO_VERSION "1900"
-#define PARQUET_FULL_SO_VERSION "1900.1.0"
+#define PARQUET_SO_VERSION "2100"
+#define PARQUET_FULL_SO_VERSION "2100.0.0"
 
 // define the parquet created by version
-#define CREATED_BY_VERSION "parquet-cpp-arrow version 19.0.1"
+#define CREATED_BY_VERSION "parquet-cpp-arrow version 21.0.0"
 
 #endif  // PARQUET_VERSION_H

@@ -265,6 +265,16 @@ class ARROW_EXPORT ExtractRegexOptions : public FunctionOptions {
   std::string pattern;
 };
 
+class ARROW_EXPORT ExtractRegexSpanOptions : public FunctionOptions {
+ public:
+  explicit ExtractRegexSpanOptions(std::string pattern);
+  ExtractRegexSpanOptions();
+  static constexpr char const kTypeName[] = "ExtractRegexSpanOptions";
+
+  /// Regular expression with named capture fields
+  std::string pattern;
+};
+
 /// Options for IsIn and IndexIn functions
 class ARROW_EXPORT SetLookupOptions : public FunctionOptions {
  public:
@@ -371,6 +381,18 @@ class ARROW_EXPORT PadOptions : public FunctionOptions {
   /// padding). Defaults to aligning on the left (i.e. adding the extra padding character
   /// on the right)
   bool lean_left_on_odd_padding = true;
+};
+
+class ARROW_EXPORT ZeroFillOptions : public FunctionOptions {
+ public:
+  explicit ZeroFillOptions(int64_t width, std::string padding = "0");
+  ZeroFillOptions();
+  static constexpr char const kTypeName[] = "ZeroFillOptions";
+
+  /// The desired string length.
+  int64_t width;
+  /// What to pad the string with. Should be one codepoint (Unicode).
+  std::string padding;
 };
 
 class ARROW_EXPORT TrimOptions : public FunctionOptions {
